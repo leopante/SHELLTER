@@ -64,7 +64,6 @@ export default function CrabGame() {
     lastShot: 0,
   });
 
-  // Genera edifici wasteland
   const generateBuildings = useCallback(() => {
     const buildings: Building[] = [];
     const canvas = canvasRef.current;
@@ -83,22 +82,20 @@ export default function CrabGame() {
     return buildings;
   }, []);
 
-  // Connect Wallet
   const connectWallet = async () => {
-    if (typeof window.ethereum !== 'undefined') {
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
       try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
         const address = accounts[0];
         setWallet(address);
       } catch (error) {
         console.error('Failed to connect wallet:', error);
       }
     } else {
-      alert('Please install MetaMask to connect your wallet!');
+      alert('Please install MetaMask!');
     }
   };
 
-  // Save score to leaderboard
   const saveScore = useCallback((finalScore: number) => {
     if (!wallet) return;
 
@@ -119,7 +116,6 @@ export default function CrabGame() {
     setLeaderboard(updated);
   }, [wallet]);
 
-  // Load leaderboard
   useEffect(() => {
     const stored = localStorage.getItem('shellter-leaderboard');
     if (stored) {
@@ -139,12 +135,10 @@ export default function CrabGame() {
 
     const state = gameStateRef.current;
 
-    // Inizializza buildings
     if (state.buildings.length === 0) {
       state.buildings = generateBuildings();
     }
 
-    // Mouse movement per mirare
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       state.mouseX = e.clientX - rect.left;
@@ -155,10 +149,9 @@ export default function CrabGame() {
       state.player.angle = Math.atan2(dy, dx);
     };
 
-    // Spara con click
     const handleClick = () => {
       const now = Date.now();
-      if (now - state.lastShot < 200) return; // Fire rate limit
+      if (now - state.lastShot < 200) return;
       state.lastShot = now;
 
       const dx = state.mouseX - state.player.x;
@@ -203,7 +196,7 @@ export default function CrabGame() {
         y,
         width: 40,
         height: 40,
-        speed: 0.8 + Math.random() * 0.5, // Velocità ridotta
+        speed: 0.8 + Math.random() * 0.5,
         hp: 3,
         maxHp: 3,
       });
@@ -217,14 +210,12 @@ export default function CrabGame() {
     };
 
     const drawWasteland = () => {
-      // Sfondo wasteland
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
       gradient.addColorStop(0, '#2d1810');
       gradient.addColorStop(1, '#1a0f08');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Grid terra
       ctx.strokeStyle = '#3d2810';
       ctx.lineWidth = 1;
       for (let i = 0; i < canvas.width; i += 40) {
@@ -240,7 +231,6 @@ export default function CrabGame() {
         ctx.stroke();
       }
 
-      // Edifici
       state.buildings.forEach(building => {
         if (building.type === 'ruin') {
           ctx.fillStyle = '#4a3520';
@@ -249,7 +239,6 @@ export default function CrabGame() {
           ctx.lineWidth = 3;
           ctx.strokeRect(building.x, building.y, building.width, building.height);
           
-          // Finestre rotte
           ctx.fillStyle = '#1a1510';
           ctx.fillRect(building.x + 10, building.y + 10, 15, 15);
           ctx.fillRect(building.x + building.width - 25, building.y + 10, 15, 15);
@@ -260,7 +249,6 @@ export default function CrabGame() {
           ctx.lineWidth = 2;
           ctx.strokeRect(building.x, building.y, building.width, building.height);
           
-          // Porta bunker
           ctx.fillStyle = '#2a2a2a';
           ctx.fillRect(building.x + building.width/2 - 10, building.y + building.height - 20, 20, 20);
         }
@@ -272,24 +260,20 @@ export default function CrabGame() {
       ctx.translate(state.player.x, state.player.y);
       ctx.rotate(state.player.angle);
       
-      // Corpo granchio
       ctx.fillStyle = '#ff6b35';
       ctx.beginPath();
       ctx.ellipse(0, 0, 15, 12, 0, 0, Math.PI * 2);
       ctx.fill();
       
-      // Chele
       ctx.fillStyle = '#ff4500';
       ctx.fillRect(-20, -8, 10, 6);
       ctx.fillRect(10, -8, 10, 6);
       
-      // Arma (gun)
       ctx.fillStyle = '#666';
       ctx.fillRect(10, -3, 18, 6);
       ctx.fillStyle = '#444';
       ctx.fillRect(28, -2, 4, 4);
       
-      // Occhi
       ctx.fillStyle = '#fff';
       ctx.beginPath();
       ctx.arc(-5, -5, 3, 0, Math.PI * 2);
@@ -318,24 +302,20 @@ export default function CrabGame() {
       ctx.save();
       ctx.translate(bear.x + bear.width/2, bear.y + bear.height/2);
       
-      // Corpo orso
       ctx.fillStyle = '#5a3a2a';
       ctx.fillRect(-20, -20, 40, 40);
       
-      // Orecchie
       ctx.beginPath();
       ctx.arc(-12, -20, 6, 0, Math.PI * 2);
       ctx.arc(12, -20, 6, 0, Math.PI * 2);
       ctx.fill();
       
-      // Occhi rossi (aggressivi)
       ctx.fillStyle = '#ff0000';
       ctx.beginPath();
       ctx.arc(-8, -8, 3, 0, Math.PI * 2);
       ctx.arc(8, -8, 3, 0, Math.PI * 2);
       ctx.fill();
       
-      // HP bar
       const hpPercentage = bear.hp / bear.maxHp;
       ctx.fillStyle = '#ff0000';
       ctx.fillRect(-20, -28, 40, 4);
@@ -348,14 +328,12 @@ export default function CrabGame() {
     const updateGame = () => {
       if (!gameStarted || gameOver) return;
 
-      // Movimento player
       let dx = 0, dy = 0;
       if (state.keys['a'] || state.keys['arrowleft']) dx -= state.player.speed;
       if (state.keys['d'] || state.keys['arrowright']) dx += state.player.speed;
       if (state.keys['w'] || state.keys['arrowup']) dy -= state.player.speed;
       if (state.keys['s'] || state.keys['arrowdown']) dy += state.player.speed;
 
-      // Normalizza movimento diagonale
       if (dx !== 0 && dy !== 0) {
         dx *= 0.707;
         dy *= 0.707;
@@ -364,11 +342,10 @@ export default function CrabGame() {
       const newX = state.player.x + dx;
       const newY = state.player.y + dy;
 
-      // Controlla collisioni con edifici
       let canMove = true;
-      const playerRect = { x: newX - 15, y: newY - 12, width: 30, height: 24 };
+      const testPlayerRect = { x: newX - 15, y: newY - 12, width: 30, height: 24 };
       for (const building of state.buildings) {
-        if (checkCollision(playerRect, building)) {
+        if (checkCollision(testPlayerRect, building)) {
           canMove = false;
           break;
         }
@@ -379,12 +356,10 @@ export default function CrabGame() {
         state.player.y = Math.max(20, Math.min(canvas.height - 20, newY));
       }
 
-      // Muovi proiettili
       state.bullets = state.bullets.filter(bullet => {
         bullet.x += bullet.vx;
         bullet.y += bullet.vy;
         
-        // Controlla collisione con edifici
         for (const building of state.buildings) {
           if (bullet.x > building.x && bullet.x < building.x + building.width &&
               bullet.y > building.y && bullet.y < building.y + building.height) {
@@ -396,7 +371,6 @@ export default function CrabGame() {
                bullet.y > 0 && bullet.y < canvas.height;
       });
 
-      // Muovi orsi
       state.bears.forEach(bear => {
         const dx = state.player.x - (bear.x + bear.width/2);
         const dy = state.player.y - (bear.y + bear.height/2);
@@ -413,7 +387,6 @@ export default function CrabGame() {
             height: bear.height
           };
           
-          // Controlla collisione orso-edificio
           let bearCanMove = true;
           for (const building of state.buildings) {
             if (checkCollision(newBearRect, building)) {
@@ -429,7 +402,6 @@ export default function CrabGame() {
         }
       });
 
-      // Collisioni proiettili-orsi
       state.bullets = state.bullets.filter(bullet => {
         let hit = false;
         state.bears = state.bears.filter(bear => {
@@ -453,8 +425,7 @@ export default function CrabGame() {
         return !hit;
       });
 
-      // Collisioni player-orsi
-      const playerRect = { 
+      const finalPlayerRect = { 
         x: state.player.x - 15, 
         y: state.player.y - 12, 
         width: 30, 
@@ -462,25 +433,22 @@ export default function CrabGame() {
       };
       
       for (const bear of state.bears) {
-        if (checkCollision(playerRect, bear)) {
+        if (checkCollision(finalPlayerRect, bear)) {
           setGameOver(true);
           saveScore(state.score);
           return;
         }
       }
 
-      // Spawn orsi (ridotto)
-      if (Math.random() < 0.008) { // Spawn rate ridotto
+      if (Math.random() < 0.008) {
         spawnBear();
       }
 
-      // Draw
       drawWasteland();
       drawPlayer();
       state.bullets.forEach(drawBullet);
       state.bears.forEach(drawBear);
 
-      // HUD
       ctx.fillStyle = '#fff';
       ctx.font = 'bold 20px Inter';
       ctx.fillText(`Score: ${state.score}`, 20, 30);
@@ -526,7 +494,6 @@ export default function CrabGame() {
     <div className="min-h-screen bg-shell-bg flex items-center justify-center p-8">
       <div className="w-full max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Game Canvas */}
           <div className="lg:col-span-8">
             <div className="relative">
               <canvas
@@ -567,9 +534,7 @@ export default function CrabGame() {
             </div>
           </div>
 
-          {/* Sidebar: Wallet + Leaderboard */}
           <div className="lg:col-span-4 space-y-6">
-            {/* Wallet */}
             <div className="card">
               <h3 className="text-lg font-semibold mb-4">Connect Wallet</h3>
               {!wallet ? (
@@ -589,7 +554,6 @@ export default function CrabGame() {
               )}
             </div>
 
-            {/* Leaderboard */}
             <div className="card">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Leaderboard</h3>
