@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'The Shellter | Survive the Storm',
-  description: 'Join the crab revolution. When markets crash, crabs survive.',
-  keywords: ['crypto', 'memecoin', 'shellter', 'defi'],
+  title: 'The Shellter',
+  description: 'When markets crash, crabs survive.',
+  keywords: ['crypto', 'memecoin', 'shellter', 'defi', 'blockchain'],
 }
 
 export default function RootLayout({
